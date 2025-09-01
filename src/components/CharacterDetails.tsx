@@ -4,7 +4,7 @@ import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ArrowLeft, RefreshCw, MapPin, Calendar } from 'lucide-react';
+import { ArrowLeft, RefreshCw, MapPin, Calendar, Share2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const CharacterDetails = () => {
@@ -41,6 +41,29 @@ const CharacterDetails = () => {
 
   const goBack = () => {
     navigate('/');
+  };
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: "Link copied!",
+        description: "Character link copied to clipboard.",
+      });
+    } catch (err) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast({
+        title: "Link copied!",
+        description: "Character link copied to clipboard.",
+      });
+    }
   };
 
   if (error) {
@@ -87,16 +110,27 @@ const CharacterDetails = () => {
           Back to Characters
         </Button>
         
-        <Button
-          onClick={handleRefresh}
-          disabled={isFetching}
-          variant="outline"
-          size="sm"
-          className="portal-glow"
-        >
-          <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={handleShare}
+            variant="outline"
+            size="sm"
+          >
+            <Share2 className="w-4 h-4 mr-2" />
+            Share Character
+          </Button>
+          
+          <Button
+            onClick={handleRefresh}
+            disabled={isFetching}
+            variant="outline"
+            size="sm"
+            className="portal-glow"
+          >
+            <RefreshCw className={`w-4 h-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+        </div>
       </div>
 
       {/* Character details card */}

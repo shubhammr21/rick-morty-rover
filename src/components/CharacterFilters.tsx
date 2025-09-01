@@ -11,7 +11,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Search, X } from 'lucide-react';
+import { Search, X, Share2, Copy } from 'lucide-react';
 import { CharacterFilters } from '@/lib/api';
 
 interface CharacterFiltersProps {
@@ -51,6 +51,24 @@ const CharacterFiltersComponent = ({
   };
 
   const hasActiveFilters = Object.values(localFilters).some(value => value && value.length > 0);
+
+  const handleShare = async () => {
+    const url = window.location.href;
+    try {
+      await navigator.clipboard.writeText(url);
+      // You might want to add a toast notification here
+      alert('Link copied to clipboard!');
+    } catch (err) {
+      // Fallback for browsers that don't support clipboard API
+      const textArea = document.createElement('textarea');
+      textArea.value = url;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      alert('Link copied to clipboard!');
+    }
+  };
 
   return (
     <Card className="p-6 mb-6">
@@ -148,15 +166,29 @@ const CharacterFiltersComponent = ({
           </div>
         </div>
 
-        <div className="flex justify-end">
-          <Button 
-            onClick={handleSearch} 
-            disabled={isLoading}
-            className="portal-glow"
-          >
-            <Search className="w-4 h-4 mr-2" />
-            Search
-          </Button>
+        <div className="flex justify-between items-center">
+          {hasActiveFilters && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={handleShare}
+              disabled={isLoading}
+            >
+              <Share2 className="w-4 h-4 mr-2" />
+              Share Link
+            </Button>
+          )}
+          
+          <div className="flex gap-2 ml-auto">
+            <Button 
+              onClick={handleSearch} 
+              disabled={isLoading}
+              className="portal-glow"
+            >
+              <Search className="w-4 h-4 mr-2" />
+              Search
+            </Button>
+          </div>
         </div>
       </div>
     </Card>
