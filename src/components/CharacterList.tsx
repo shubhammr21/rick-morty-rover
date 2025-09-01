@@ -1,3 +1,4 @@
+
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -6,24 +7,37 @@ import {
   ColumnDef,
   flexRender,
 } from '@tanstack/react-table';
-import { api, Character } from '@/lib/api';
+import { api, Character, CharacterFilters } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { useEffect, useState } from 'react';
+import CharacterFiltersComponent from './CharacterFilters';
 
 const CharacterList = () => {
   const navigate = useNavigate();
   
-  // Get current page from URL or default to 1
+  // Get current page and filters from URL or default values
   const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<CharacterFilters>({});
   
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const pageFromUrl = Number(urlParams.get('page')) || 1;
+    const nameFromUrl = urlParams.get('name') || undefined;
+    const statusFromUrl = urlParams.get('status') || undefined;
+    const speciesFromUrl = urlParams.get('species') || undefined;
+    const genderFromUrl = urlParams.get('gender') || undefined;
+    
     setCurrentPage(pageFromUrl);
+    setFilters({
+      name: nameFromUrl,
+      status: statusFromUrl,
+      species: speciesFromUrl,
+      gender: genderFromUrl,
+    });
   }, []);
 
   const {
@@ -33,8 +47,8 @@ const CharacterList = () => {
     refetch,
     isFetching,
   } = useQuery({
-    queryKey: ['characters', currentPage],
-    queryFn: () => api.getCharacters(currentPage),
+    queryKey: ['characters', currentPage, filters],
+    queryFn: () => api.getCharacters(currentPage, filters),
     retry: 2,
   });
 
@@ -113,12 +127,36 @@ const CharacterList = () => {
     }
   };
 
-  const goToPage = (page: number) => {
-    setCurrentPage(page);
-    // Update URL with new page
+  const updateURL = (page: number, newFilters: CharacterFilters) => {
     const url = new URL(window.location.href);
     url.searchParams.set('page', page.toString());
+    
+    // Update filter parameters
+    Object.entries(newFilters).forEach(([key, value]) => {
+      if (value) {
+        url.searchParams.set(key, value);
+      } else {
+        url.searchParams.delete(key);
+      }
+    });
+    
     window.history.pushState({}, '', url);
+  };
+
+  const goToPage = (page: number) => {
+    setCurrentPage(page);
+    updateURL(page, filters);
+  };
+
+  const handleFiltersChange = (newFilters: CharacterFilters) => {
+    setFilters(newFilters);
+    setCurrentPage(1); // Reset to first page when filters change
+    updateURL(1, newFilters);
+  };
+
+  const handleSearch = () => {
+    // Trigger refetch with new filters
+    refetch();
   };
 
   const handleRowClick = (character: Character) => {
@@ -128,7 +166,9 @@ const CharacterList = () => {
   if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-96">
-        <div className="text-destructive text-xl mb-4">Error loading characters</div>
+        <div className="text-destructive text-xl mb-4">
+          {error.message.includes('404') ? 'No characters found matching your criteria' : 'Error loading characters'}
+        </div>
         <Button onClick={handleRefresh} variant="outline">
           Try Again
         </Button>
@@ -143,7 +183,7 @@ const CharacterList = () => {
         <div>
           <h2 className="text-3xl font-bold text-foreground">Characters</h2>
           <p className="text-muted-foreground">
-            Showing page {currentPage} of {data?.info.pages || 0}
+            {data ? `Showing page ${currentPage} of ${data.info.pages} (${data.info.count} total characters)` : 'Loading...'}
           </p>
         </div>
         
@@ -157,6 +197,14 @@ const CharacterList = () => {
           Refresh
         </Button>
       </div>
+
+      {/* Search and Filter Component */}
+      <CharacterFiltersComponent
+        filters={filters}
+        onFiltersChange={handleFiltersChange}
+        onSearch={handleSearch}
+        isLoading={isFetching}
+      />
 
       {/* Character table */}
       <Card className="overflow-hidden">
@@ -189,6 +237,14 @@ const CharacterList = () => {
                     </div>
                   </td>
                 </tr>
+              ) : data?.results.length === 0 ? (
+                <tr>
+                  <td colSpan={columns.length} className="px-6 py-12 text-center">
+                    <div className="text-muted-foreground">
+                      No characters found matching your search criteria.
+                    </div>
+                  </td>
+                </tr>
               ) : (
                 table.getRowModel().rows.map((row) => (
                   <tr
@@ -210,7 +266,7 @@ const CharacterList = () => {
       </Card>
 
       {/* Pagination */}
-      {data && (
+      {data && data.results.length > 0 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-muted-foreground">
             Total: {data.info.count} characters

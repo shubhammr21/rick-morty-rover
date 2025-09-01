@@ -1,3 +1,4 @@
+
 // Rick and Morty API types and service
 export interface Character {
   id: number;
@@ -32,11 +33,26 @@ export interface ApiResponse<T> {
 
 export type CharactersResponse = ApiResponse<Character>;
 
+export interface CharacterFilters {
+  name?: string;
+  status?: string;
+  species?: string;
+  gender?: string;
+}
+
 const BASE_URL = 'https://rickandmortyapi.com/api';
 
 export const api = {
-  getCharacters: async (page: number = 1): Promise<CharactersResponse> => {
-    const response = await fetch(`${BASE_URL}/character?page=${page}`);
+  getCharacters: async (page: number = 1, filters: CharacterFilters = {}): Promise<CharactersResponse> => {
+    const params = new URLSearchParams();
+    params.append('page', page.toString());
+    
+    if (filters.name) params.append('name', filters.name);
+    if (filters.status) params.append('status', filters.status);
+    if (filters.species) params.append('species', filters.species);
+    if (filters.gender) params.append('gender', filters.gender);
+
+    const response = await fetch(`${BASE_URL}/character?${params.toString()}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch characters: ${response.statusText}`);
     }
