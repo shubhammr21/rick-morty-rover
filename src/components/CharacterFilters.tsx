@@ -34,7 +34,7 @@ const CharacterFiltersComponent = ({
   }, [filters]);
 
   const handleFilterChange = (key: keyof CharacterFilters, value: string) => {
-    const newFilters = { ...localFilters, [key]: value || undefined };
+    const newFilters = { ...localFilters, [key]: value === 'all' ? undefined : value };
     setLocalFilters(newFilters);
   };
 
@@ -88,7 +88,7 @@ const CharacterFiltersComponent = ({
           <div className="space-y-2">
             <Label>Status</Label>
             <Select 
-              value={localFilters.status || ''} 
+              value={localFilters.status || 'all'} 
               onValueChange={(value) => handleFilterChange('status', value)}
               disabled={isLoading}
             >
@@ -96,7 +96,7 @@ const CharacterFiltersComponent = ({
                 <SelectValue placeholder="All statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All statuses</SelectItem>
+                <SelectItem value="all">All statuses</SelectItem>
                 <SelectItem value="alive">Alive</SelectItem>
                 <SelectItem value="dead">Dead</SelectItem>
                 <SelectItem value="unknown">Unknown</SelectItem>
@@ -107,7 +107,7 @@ const CharacterFiltersComponent = ({
           <div className="space-y-2">
             <Label>Species</Label>
             <Select 
-              value={localFilters.species || ''} 
+              value={localFilters.species || 'all'} 
               onValueChange={(value) => handleFilterChange('species', value)}
               disabled={isLoading}
             >
@@ -115,7 +115,7 @@ const CharacterFiltersComponent = ({
                 <SelectValue placeholder="All species" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All species</SelectItem>
+                <SelectItem value="all">All species</SelectItem>
                 <SelectItem value="human">Human</SelectItem>
                 <SelectItem value="alien">Alien</SelectItem>
                 <SelectItem value="humanoid">Humanoid</SelectItem>
@@ -130,7 +130,7 @@ const CharacterFiltersComponent = ({
           <div className="space-y-2">
             <Label>Gender</Label>
             <Select 
-              value={localFilters.gender || ''} 
+              value={localFilters.gender || 'all'} 
               onValueChange={(value) => handleFilterChange('gender', value)}
               disabled={isLoading}
             >
@@ -138,7 +138,7 @@ const CharacterFiltersComponent = ({
                 <SelectValue placeholder="All genders" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All genders</SelectItem>
+                <SelectItem value="all">All genders</SelectItem>
                 <SelectItem value="male">Male</SelectItem>
                 <SelectItem value="female">Female</SelectItem>
                 <SelectItem value="genderless">Genderless</SelectItem>
