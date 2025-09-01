@@ -24,13 +24,11 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <RootLayout>
-          <Routes>
-            <Route path="/" element={<CharacterList />} />
-            <Route path="/character/:characterId" element={<CharacterDetails />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </RootLayout>
+        <Routes>
+          <Route path="/" element={<RootLayout><CharacterList /></RootLayout>} />
+          <Route path="/character/:characterId" element={<RootLayout><CharacterDetails /></RootLayout>} />
+          <Route path="*" element={<RootLayout><NotFound /></RootLayout>} />
+        </Routes>
       </BrowserRouter>
       {import.meta.env.DEV && <ReactQueryDevtools />}
     </TooltipProvider>
